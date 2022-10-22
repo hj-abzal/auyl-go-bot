@@ -1,18 +1,23 @@
 import { Injectable } from "@nestjs/common";
-import { InjectModel } from "@nestjs/sequelize";
+import { InjectBot } from "nestjs-telegraf";
+import { Context, Telegraf } from "telegraf";
 import { Users } from "../models/users.model";
-import { CreateUserDto } from "../dto/create-user.dto";
 
 @Injectable()
-export class UsersService {
-  constructor(@InjectModel(Users) private userRepository: typeof Users) {
+export class MessagesService {
+  constructor(
+    @InjectBot() private readonly bot: Telegraf<Context>
+  ) {
   }
 
-  create(dto: CreateUserDto): Promise<Users> {
-    return  this.userRepository.create(dto)
-  }
-
-  getAll(params: Users): Promise<Users[]> {
-    return  this.userRepository.findAll({where: { ...params }})
+  async sendMessage(message: string, users: Users[]): Promise<Users[]> {
+    try {
+      users.map( async (u) => {
+        await this.bot.telegram.sendMessage(u.telegram_id, message);
+      });
+      return users;
+    } catch (e) {
+      return e
+    }
   }
 }

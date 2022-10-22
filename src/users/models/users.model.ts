@@ -20,11 +20,11 @@ export class Users extends Model<Users, UserCreationAttrs> {
   name: string;
 
   @ApiProperty({example: 'learn react', description: 'title of the task'})
-  @Column({ type: DataType.STRING, allowNull: false })
+  @Column({ type: DataType.STRING, unique: true, allowNull: false })
   telegram_user_name: string;
 
   @ApiProperty({example: 'true/false', description: 'status of the task'})
-  @Column({ type: DataType.STRING, allowNull: false, defaultValue: false })
+  @Column({ type: DataType.STRING, unique: true, allowNull: false, defaultValue: false })
   telegram_id: string;
 
   @Column({ type: DataType.INTEGER, allowNull: false })

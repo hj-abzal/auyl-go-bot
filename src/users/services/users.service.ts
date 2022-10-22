@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/sequelize";
-import { Users } from "./models/users.model";
-import { CreateUserDto } from "./dto/create-user.dto";
+import { Users } from "../models/users.model";
+import { CreateUserDto } from "../dto/create-user.dto";
 
 @Injectable()
 export class UsersService {
@@ -12,7 +12,7 @@ export class UsersService {
     return  this.userRepository.create(dto)
   }
 
-  getAll(params: Users): Promise<Users[]> {
+  getAll(params: any): Promise<Users[]> {
     return  this.userRepository.findAll({where: { ...params }})
   }
 }

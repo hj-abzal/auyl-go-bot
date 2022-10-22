@@ -5,6 +5,7 @@ import { UsersModule } from "./users/users.module";
 import { Users } from "./users/models/users.model";
 import { TelegrafModule } from "nestjs-telegraf";
 import * as LocalSessions from "telegraf-session-local";
+import { AppUpdate } from "./app.update";
 
 const sessions = new LocalSessions({database: 'sessions-db.json'})
 @Module({
@@ -29,5 +30,7 @@ const sessions = new LocalSessions({database: 'sessions-db.json'})
     }),
     UsersModule,
   ],
+  controllers: [],
+  providers: [AppUpdate]
 })
 export class AppModule {}
