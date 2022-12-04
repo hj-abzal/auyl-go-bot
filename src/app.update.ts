@@ -2,11 +2,13 @@ import { Ctx, InjectBot, Message, On, Start, Update } from "nestjs-telegraf";
 import { Context, Telegraf } from "telegraf";
 import { v1 } from "uuid";
 import { UsersService } from "./users/services/users.service";
+import { MessagesService } from "./users/services/messages.service";
 
 interface IContext extends Context {
   session: {
-    type: "register" | null,
-    token: string
+    type: "register" | "send_message" | "group_defined" | "message_ready",
+    token: string,
+    group: number
   };
 }
 
@@ -14,16 +16,15 @@ interface IContext extends Context {
 export class AppUpdate {
   constructor(
     @InjectBot() private readonly bot: Telegraf<IContext>,
-    private userService: UsersService
+    private userService: UsersService,
+    private messagesService: MessagesService,
   ) {
   }
 
   @Start()
   async sayHello(ctx: IContext) {
-    console.log(ctx);
-    console.log('fdjflkd');
     try {
-      const allUsers = await this.userService.getAll({telegram_id: ctx.from.id.toString()})
+      const allUsers = await this.userService.getAll({ telegram_id: ctx.from.id.toString() });
       allUsers.length ? await this.sendZoomLink(ctx) : await this.sendRegistrationToken(ctx);
     } catch (e) {
       ctx.telegram.sendMessage("1071927152", e);
@@ -32,6 +33,33 @@ export class AppUpdate {
 
   @On("text")
   async confirmRegister(@Message("text") message: string, @Ctx() ctx: IContext) {
+    if (ctx.from.id === 1071927152 && message === "/send_message") {
+      ctx.session.type = "send_message";
+      return ctx.telegram.sendMessage("1071927152", "К какой группе?");
+    }
+
+    if (ctx.session?.type === "send_message") {
+      ctx.session.group = +message;
+      ctx.session.type = "group_defined";
+      return ctx.telegram.sendMessage("1071927152", "Введите сообщение:");
+    }
+
+    if (ctx.session?.type === "group_defined") {
+      ctx.session.type = null;
+
+      const users = await this.userService.getAll({group: ctx.session.group})
+      await this.messagesService.sendMessage(message, users)
+      return ctx.telegram.sendMessage("1071927152", users.map(u => u.name).join(','));
+    }
+
+    if (ctx.session?.type === "message_ready") {
+      ctx.session.type = null;
+
+      const users = await this.userService.getAll({group: ctx.session.group})
+      await this.messagesService.sendMessage(message, users)
+      return ctx.telegram.sendMessage("1071927152", users.map(u => u.name).join(','));
+    }
+
     if (ctx.session?.type !== "register") return;
     if (message === ctx.session.token) {
       try {

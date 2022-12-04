@@ -12,6 +12,6 @@ import { MessagesService } from "./services/messages.service";
   imports: [
     SequelizeModule.forFeature([Users])
   ],
-  exports: [UsersService]
+  exports: [UsersService, MessagesService]
 })
 export class UsersModule {}
