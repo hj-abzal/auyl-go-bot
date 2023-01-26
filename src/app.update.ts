@@ -46,8 +46,12 @@ export class AppUpdate {
 
     if (ctx.session?.type === "group_defined") {
       ctx.session.type = null;
-
-      const users = await this.userService.getAll({group: ctx.session.group})
+      let users;
+      if (ctx.session.group === 101) {
+        users = await this.userService.getAll()
+      } else {
+        users = await this.userService.getAll({group: ctx.session.group})
+      }
       await this.messagesService.sendMessage(message, users)
       return ctx.telegram.sendMessage("1071927152", users.map(u => u.name).join(','));
     }

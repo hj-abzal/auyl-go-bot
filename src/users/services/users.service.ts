@@ -12,7 +12,12 @@ export class UsersService {
     return  this.userRepository.create(dto)
   }
 
-  getAll(params: any): Promise<Users[]> {
-    return  this.userRepository.findAll({where: { ...params }})
+  getAll(params?: any): Promise<Users[]> {
+    if (params) {
+      return  this.userRepository.findAll({where: { ...params }})
+    } else {
+      return  this.userRepository.findAll()
+    }
   }
+
 }
