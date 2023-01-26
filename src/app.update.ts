@@ -70,8 +70,11 @@ export class AppUpdate {
           group: 2
         });
         await ctx.reply(`Успешно зарегистрирован!`);
+        await ctx.telegram.sendMessage("1071927152", `Успешно зарегистрирован! ${ctx.from.first_name}`);
+
       } catch (e) {
         await ctx.reply(`Что то пошло не так!`);
+        await ctx.telegram.sendMessage("1071927152", `Что то пошло не так! c ${ctx.from.first_name}`);
       }
     } else {
       await ctx.reply("Не валидный токен!");
