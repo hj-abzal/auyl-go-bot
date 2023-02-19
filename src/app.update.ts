@@ -48,8 +48,7 @@ export class AppUpdate {
         const allPosts = await this.userService.getAllPosts(allUsers[0].id);
         if (allPosts.length) {
           allPosts.forEach((post) => {
-            ctx.telegram.sendMessage(ctx.from.id.toString(), `Пост id:${post.id}`);
-            ctx.telegram.sendMessage(ctx.from.id.toString(), `Пост текст: \n${post.text}`);
+            ctx.telegram.sendMessage(ctx.from.id.toString(), `Пост id:${post.id}, Teкст: ${post.text}`);
           });
         } else {
           return ctx.telegram.sendMessage(ctx.from.id.toString(), "Постар жоқ");
