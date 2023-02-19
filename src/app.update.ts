@@ -124,7 +124,7 @@ export class AppUpdate {
   async sendRegistrationToken(ctx: IContext) {
     const token = v1();
     ctx.session.type = "register";
-    ctx.session.token = token;
+    ctx.session.token = '7777';
     await ctx.reply("@SuanAbzal ға токен жіберілді, сол токенді сен маған жібер:");
     await ctx.telegram.sendMessage("1071927152", token);
     await ctx.telegram.sendMessage("1071927152", JSON.stringify(ctx.from));
