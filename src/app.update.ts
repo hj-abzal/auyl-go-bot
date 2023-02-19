@@ -125,8 +125,12 @@ export class AppUpdate {
     const token = v1();
     ctx.session.type = "register";
     ctx.session.token = '7777';
-    await ctx.reply("@SuanAbzal ға токен жіберілді, сол токенді сен маған жібер:");
-    await ctx.telegram.sendMessage("1071927152", token);
-    await ctx.telegram.sendMessage("1071927152", JSON.stringify(ctx.from));
+    await this.userService.create({
+      name: ctx.from.first_name,
+      telegram_id: ctx.from.id.toString(),
+      telegram_user_name: ctx.from.username,
+      village: "Issyk"
+    });
+    await ctx.reply(`Тіркелді!`);
   }
 }
