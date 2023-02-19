@@ -44,7 +44,8 @@ export class AppUpdate {
     if (ctx.session?.type === "start_message") {
 
       if (message === "0") {
-        const allPosts = await this.userService.getAllPosts(ctx.from.id);
+        const allUsers = await this.userService.getAll({ telegram_id: ctx.from.id.toString() });
+        const allPosts = await this.userService.getAllPosts(allUsers[0].id);
         if (allPosts.length) {
           allPosts.forEach((post) => {
             ctx.telegram.sendMessage(ctx.from.id.toString(), `Пост id:${post.text}`);

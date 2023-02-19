@@ -26,7 +26,7 @@ export class UsersService {
 
 
   getAllPosts(id: number): Promise<Posts[]> {
-    return this.postsRepository.findAll({include: { all: true }, where: {id}})
+    return this.postsRepository.findAll({include: { all: true }, where: {user_id: id}})
   }
 
   createPost(dto: any): Promise<Posts> {
