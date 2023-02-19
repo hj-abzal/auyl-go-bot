@@ -27,8 +27,8 @@ export class AppUpdate {
         ctx.session.type = "start_message";
         ctx.telegram.sendMessage(ctx.from.id.toString(), `
         Барлық посттарды қарау үшін 0 жіберіңіз,
-        Пост жазу үшін 1 жіберіңіз,
-        Постты өшіру үшін 2 жіберіңіз,
+Пост жазу үшін 1 жіберіңіз,
+Постты өшіру үшін 2 жіберіңіз,
         `);
       } else {
         await this.sendRegistrationToken(ctx);
@@ -71,9 +71,12 @@ export class AppUpdate {
 
     if (ctx.session?.type === "create_post") {
         try {
+
+          const allUsers = await this.userService.getAll({ telegram_id: ctx.from.id.toString() });
+
           await this.userService.createPost({
             text: message,
-            user_id: ctx.from.id
+            user_id: allUsers[0].id
           });
           await ctx.reply("Пост жазылды!");
           ctx.session.type = null;
