@@ -2,11 +2,10 @@ import { Ctx, InjectBot, Message, On, Start, Update } from "nestjs-telegraf";
 import { Context, Telegraf } from "telegraf";
 import { v1 } from "uuid";
 import { UsersService } from "./users/services/users.service";
-import { MessagesService } from "./users/services/messages.service";
 
 interface IContext extends Context {
   session: {
-    type: "register" | "send_message" | "group_defined" | "message_ready",
+    type: "create_post" | "start_message" | "register" | "delete_post"
     token: string,
     group: number
   };
@@ -17,7 +16,6 @@ export class AppUpdate {
   constructor(
     @InjectBot() private readonly bot: Telegraf<IContext>,
     private userService: UsersService,
-    private messagesService: MessagesService,
   ) {
   }
 
@@ -25,7 +23,16 @@ export class AppUpdate {
   async sayHello(ctx: IContext) {
     try {
       const allUsers = await this.userService.getAll({ telegram_id: ctx.from.id.toString() });
-      allUsers.length ? await this.sendZoomLink(ctx) : await this.sendRegistrationToken(ctx);
+      if (allUsers.length) {
+        ctx.session.type = "start_message";
+        ctx.telegram.sendMessage(ctx.from.id.toString(), `
+        Барлық посттарды қарау үшін 0 жіберіңіз,
+        Пост жазу үшін 1 жіберіңіз,
+        Постты өшіру үшін 2 жіберіңіз,
+        `);
+      } else {
+        await this.sendRegistrationToken(ctx);
+      }
     } catch (e) {
       ctx.telegram.sendMessage("1071927152", e);
     }
@@ -33,36 +40,58 @@ export class AppUpdate {
 
   @On("text")
   async confirmRegister(@Message("text") message: string, @Ctx() ctx: IContext) {
-    if (ctx.from.id === 1071927152 && message === "/send_message") {
-      ctx.session.type = "send_message";
-      return ctx.telegram.sendMessage("1071927152", "К какой группе?");
-    }
 
-    if (ctx.session?.type === "send_message") {
-      ctx.session.group = +message;
-      ctx.session.type = "group_defined";
-      return ctx.telegram.sendMessage("1071927152", "Введите сообщение:");
-    }
+    if (ctx.session?.type === "start_message") {
 
-    if (ctx.session?.type === "group_defined") {
-      ctx.session.type = null;
-      let users;
-      if (ctx.session.group === 101) {
-        users = await this.userService.getAll()
-      } else {
-        users = await this.userService.getAll({group: ctx.session.group})
+      if (message === "0") {
+        const allPosts = await this.userService.getAllPosts(ctx.from.id);
+        if (allPosts.length) {
+          allPosts.forEach((post) => {
+            ctx.telegram.sendMessage(ctx.from.id.toString(), `Пост id:${post.text}`);
+            ctx.telegram.sendMessage(ctx.from.id.toString(), `Пост текст: \n${post.text}`);
+          });
+        } else {
+          return ctx.telegram.sendMessage(ctx.from.id.toString(), "Постар жоқ");
+        }
       }
-      await this.messagesService.sendMessage(message, users)
-      return ctx.telegram.sendMessage("1071927152", users.map(u => u.name).join(','));
-    }
+      if (message === "1") {
+        ctx.session.type = "create_post";
+        return ctx.reply("Постты жазыңыз:");
 
-    if (ctx.session?.type === "message_ready") {
+      }
+      if (message === "2") {
+        ctx.session.type = "delete_post";
+
+        return ctx.reply("Посстың id осында жіберіңіз:");
+
+      }
       ctx.session.type = null;
-
-      const users = await this.userService.getAll({group: ctx.session.group})
-      await this.messagesService.sendMessage(message, users)
-      return ctx.telegram.sendMessage("1071927152", users.map(u => u.name).join(','));
+      return ctx.reply("Қате жазылды!");
     }
+
+    if (ctx.session?.type === "create_post") {
+        try {
+          await this.userService.createPost({
+            text: message,
+            user_id: ctx.from.id
+          });
+          await ctx.reply("Пост жазылды!");
+          ctx.session.type = null;
+        } catch (e) {
+
+        }
+    }
+
+    if (ctx.session?.type === "delete_post") {
+      try {
+        await this.userService.deletePost(Number(message));
+        await ctx.reply("Пост өшірілді!");
+        ctx.session.type = null;
+      } catch (e) {
+
+      }
+    }
+
 
     if (ctx.session?.type !== "register") return;
     if (message === ctx.session.token) {
@@ -71,31 +100,27 @@ export class AppUpdate {
           name: ctx.from.first_name,
           telegram_id: ctx.from.id.toString(),
           telegram_user_name: ctx.from.username,
-          group: 2
+          village: "Issyk"
         });
-        await ctx.reply(`Успешно зарегистрирован!`);
+        await ctx.reply(`Тіркелді!`);
         await ctx.telegram.sendMessage("1071927152", `Успешно зарегистрирован! ${ctx.from.first_name}`);
 
       } catch (e) {
-        await ctx.reply(`Что то пошло не так!`);
+        await ctx.reply(`Қате істелді!`);
         await ctx.telegram.sendMessage("1071927152", `Что то пошло не так! c ${ctx.from.first_name}`);
       }
     } else {
-      await ctx.reply("Не валидный токен!");
+      await ctx.reply("Токен дұрыс емес!");
     }
     ctx.session.type = null;
     ctx.session.token = "";
-  }
-
-  async sendZoomLink(ctx: IContext) {
-    await ctx.reply(`https://zoom.us/j/2893885232?pwd=UC8yUTRnMDh4NDd5YmVZb2hFNEFzZz09`);
   }
 
   async sendRegistrationToken(ctx: IContext) {
     const token = v1();
     ctx.session.type = "register";
     ctx.session.token = token;
-    await ctx.reply("Отправил сенсею @SuanAbzal токен, отправь следующим сообщением данный токен:");
+    await ctx.reply("@SuanAbzal ға токен жіберілді, сол токенді сен маған жібер:");
     await ctx.telegram.sendMessage("1071927152", token);
     await ctx.telegram.sendMessage("1071927152", JSON.stringify(ctx.from));
   }

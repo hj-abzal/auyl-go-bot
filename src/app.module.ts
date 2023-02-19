@@ -6,6 +6,7 @@ import { Users } from "./users/models/users.model";
 import { TelegrafModule } from "nestjs-telegraf";
 import * as LocalSessions from "telegraf-session-local";
 import { AppUpdate } from "./app.update";
+import { Posts } from "./users/models/posts.model";
 
 const sessions = new LocalSessions({database: 'sessions-db.json'})
 @Module({
@@ -15,17 +16,17 @@ const sessions = new LocalSessions({database: 'sessions-db.json'})
     }),
     TelegrafModule.forRoot({
       middlewares: [sessions.middleware()],
-      token: process.env.TG_TOKEN
+      token: "6219075080:AAE_Ca2Csr4Y4BQ1N3H8fAj_1keAvrZyyUA"
     }),
     SequelizeModule.forRoot({
       dialect: 'postgres',
-      host: process.env.POSTGRES_HOST,
-      port: +process.env.POSTGRES_PORT,
-      username: process.env.POSTGRES_USER,
-      password: process.env.POSTGRES_PASSWORD,
-      database: process.env.POSTGRES_DB,
+      host: process.env.PGHOST,
+      port: +process.env.PGPORT,
+      username: process.env.PGUSER,
+      password: process.env.PGPASSWORD,
+      database: process.env.PGDATABASE,
       ssl: false,
-      models: [Users],
+      models: [Users, Posts],
       autoLoadModels: true
     }),
     UsersModule,

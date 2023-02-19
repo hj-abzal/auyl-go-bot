@@ -1,5 +1,6 @@
-import { Column, DataType, Model, Table } from "sequelize-typescript";
+import { Column, DataType, HasMany, Model, Table } from "sequelize-typescript";
 import { ApiProperty } from "@nestjs/swagger";
+import { Posts } from "./posts.model";
 
 export interface UserCreationAttrs {
   name: string;
@@ -27,6 +28,11 @@ export class Users extends Model<Users, UserCreationAttrs> {
   @Column({ type: DataType.STRING, unique: true, allowNull: false, defaultValue: false })
   telegram_id: string;
 
-  @Column({ type: DataType.INTEGER, allowNull: false })
-  group: number;
+  @ApiProperty({example: 'Karasaz', description: 'Auyl of the person'})
+  @Column({ type: DataType.STRING, allowNull: false })
+  village: string;
+
+
+  @HasMany(() => Posts)
+  posts: Posts[]
 }
