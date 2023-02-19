@@ -85,6 +85,7 @@ export class AppUpdate {
     if (ctx.session?.type === "delete_post") {
       try {
         await this.userService.deletePost(Number(message));
+
         await ctx.reply("Пост өшірілді!");
         ctx.session.type = null;
       } catch (e) {
